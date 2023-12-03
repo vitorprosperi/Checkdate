@@ -98,14 +98,6 @@ $resultCategorias = $mysqli->query($queryCategorias);
             <button type="submit" name="update">Salvar</button>
         </form>
     </div>
-
-    <script>
-        // JavaScript para exibir o formulário de adição de item
-        document.addEventListener('DOMContentLoaded', function () {
-            var addItemForm = document.getElementById('addItemForm');
-            addItemForm.style.display = 'block';
-        });
-    </script>
 </body>
 
 </html>
