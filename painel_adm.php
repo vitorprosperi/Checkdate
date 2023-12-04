@@ -11,7 +11,7 @@ if(!empty($_GET['search'])){
     $sql = "SELECT * FROM produtos WHERE codigo LIKE '%$data%' or nome LIKE '%$data%' or lote LIKE '%$data%' ORDER BY codigo DESC";
 
 }else{
-    $sql = "SELECT * FROM produtos ORDER BY codigo DESC";
+    $sql = "SELECT * FROM produtos ORDER BY datavalidade ASC";
 }
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
@@ -27,9 +27,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $cadastro = $_SESSION['id'];
         $alterar = "Nome: " . $_SESSION['nome'] . " | " . date('d-m-Y H:i:s');
         $quantidade = $_POST['qtd'];
-        $desconto = $_POST['desconto'];
 
-        $sql = "INSERT INTO produtos (nome, lote, preco, datavalidade, idfornecedor, idcategoria, cadastro, alterar, qtd, desconto) VALUES ('$name', '$batch', '$price', '$expirationDate','$fornecedor', '$categoria','$cadastro','$alterar', $quantidade, $desconto)";
+        $sql = "INSERT INTO produtos (nome, lote, preco, datavalidade, idfornecedor, idcategoria, cadastro, alterar, qtd) VALUES ('$name', '$batch', '$price', '$expirationDate','$fornecedor', '$categoria','$cadastro','$alterar', $quantidade)";
 
         $result = $mysqli->query($sql);
 
@@ -97,11 +96,10 @@ $result = $mysqli->query($sql);
 
         </ul>
 
-        <button onclick="sortByExpirationDate()">Ordenar por Proximidade</button>
-
         <button class="add" onclick="showAddItemForm()">Adicionar Item</button>
         <a href="cad_fun.php" class="add-button">Cadastrar Funcionário</a>
         <a href="show_fun.php" class="show-button">Exibir Funcionários</a>
+        <a href="cad_categ.php" class="add-button">Cadastrar Categoria</a>
 
         <form action="" method="POST" id="addItemForm" style="display: none;">
             <h2>Adicionar Item</h2>
@@ -113,9 +111,6 @@ $result = $mysqli->query($sql);
 
             <label for="batch">Lote do Item:</label>
             <input type="text" id="batch" name="batch" required>
-
-            <label for="desconto">Desconto:</label>
-            <input type="text" id="desconto" name="desconto" required>
 
             <label for="price">Preço do Item:</label>
             <input type="text" id="price" name="price" required>
@@ -154,8 +149,8 @@ $result = $mysqli->query($sql);
                 <th scope="col">Código</th>
                 <th scope="col">Descrição</th>
                 <th scope="col">Quantidade</th>
-                <th scope="col">Desconto</th>
                 <th scope="col">Preço</th>
+                <th scope="col">Desconto</th>
                 <th scope="col">Preço com Desconto</th>
                 <th scope="col">Data de Validade</th>
                 <th scope="col">Lote</th>
@@ -165,28 +160,35 @@ $result = $mysqli->query($sql);
             <tbody>
             <?php
     while ($user_data = mysqli_fetch_assoc($result)) {
+        $preco = $user_data['preco'];
         $hoje = new DateTime();
         $datavalidade = new DateTime($user_data['datavalidade']);
-        $diferenca = $hoje->diff($datavalidade)->days;
-
+        $diferenca = $datavalidade->getTimestamp() - $hoje->getTimestamp();
+        // Converter a diferença de segundos para dias (1 dia = 24 * 60 * 60 segundos)
+        $diferencaDias = floor($diferenca / (24 * 60 * 60));
         // Inicia a linha da tabela com a tag <tr> e aplica o estilo se a condição for atendida
         echo "<tr";
-        if ($diferenca <= 0) {
+        if ($diferencaDias <= 0) {
             echo " style='background-color: #FA3138;'";
-        } elseif ($diferenca <= 60) {
+            $desconto = 80/100;
+            $precodesconto = $preco - ($preco * $desconto);
+        } elseif ($diferencaDias <= 60) {
             echo " style='background-color: yellow;'";
+            $desconto = 60/100;
+            $precodesconto = $preco - ($preco * $desconto);
+        } elseif ($diferencaDias <= 120) {        
+            echo " style='background-color: green;'";
+            $desconto = 40/100;
+            $precodesconto = $preco - ($preco * $desconto);
         }
         echo ">";
-
+        
         echo "<td>" . $user_data['codigo'] . "</td>";
         echo "<td>" . $user_data['nome'] . "</td>";
         echo "<td>" . $user_data['qtd'] . "</td>";
-        echo "<td>" . $user_data['desconto'] . "</td>";
         echo "<td>" . $user_data['preco'] . "</td>";
-        $preco = $user_data['preco'];
-        $desconto = $user_data['desconto'];
-        $precodesconto = $preco - ($preco * $desconto / 100);
-        echo "<td>" . $precodesconto . "</td>";                    
+        echo "<td>" . ($desconto*100)."%". "</td>";
+        echo "<td>" . (double)$precodesconto . "</td>";                    
         echo "<td>" . $user_data['datavalidade'] . "</td>";
         echo "<td>" . $user_data['lote'] . "</td>";
         echo "<td>" . $user_data['alterar'] . "</td>";
