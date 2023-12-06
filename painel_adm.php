@@ -3,53 +3,58 @@
 include('protect.php');
 include('conexao.php');
 
-date_default_timezone_set('America/Sao_Paulo');
-
-if(!empty($_GET['search'])){
-
-    $data = $_GET['search'];
-    $sql = "SELECT * FROM produtos WHERE codigo LIKE '%$data%' or nome LIKE '%$data%' or lote LIKE '%$data%' ORDER BY codigo DESC";
-
-}else{
-    $sql = "SELECT * FROM produtos ORDER BY datavalidade ASC";
+if (!isset($_SESSION['privilegio']) || $_SESSION['privilegio'] != 1) {
+    // Redireciona para outra página ou mostra uma mensagem de erro
+    header("Location: index.php");
+    exit();
 }
 
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-
-    if (isset($_POST['submitItem'])) {
-        
-        $name = $_POST['name'];
-        $batch = $_POST['batch'];
-        $price = (double)str_replace(',', '.', $_POST['price']);
-        $expirationDate = $_POST['expirationDate'];
-        $fornecedor = $_POST['fornecedor'];
-        $categoria = $_POST['categoria'];
-        $cadastro = $_SESSION['id'];
-        $alterar = "Nome: " . $_SESSION['nome'] . " | " . date('d-m-Y H:i:s');
-        $quantidade = $_POST['qtd'];
-
-        $sql = "INSERT INTO produtos (nome, lote, preco, datavalidade, idfornecedor, idcategoria, cadastro, alterar, qtd) VALUES ('$name', '$batch', '$price', '$expirationDate','$fornecedor', '$categoria','$cadastro','$alterar', $quantidade)";
-
-        $result = $mysqli->query($sql);
-
-        if (!$result) {
-            echo "Erro ao adicionar item: " . $mysqli->error;
-        } else {
-            echo "Item adicionado com sucesso!";
-            header("Location: " . $_SERVER['PHP_SELF']);
-            exit();
+date_default_timezone_set('America/Sao_Paulo');
+    
+    if(!empty($_GET['search'])){
+    
+        $data = $_GET['search'];
+        $sql = "SELECT * FROM produtos WHERE codigo LIKE '%$data%' or nome LIKE '%$data%' or lote LIKE '%$data%' or datavalidade like '%$data%' or alterar like '%$data%' ORDER BY datavalidade ASC";
+    
+    }else{
+        $sql = "SELECT * FROM produtos ORDER BY datavalidade ASC";
+    }
+    
+    if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    
+        if (isset($_POST['submitItem'])) {
+            
+            $name = $_POST['name'];
+            $batch = $_POST['batch'];
+            $price = (double)str_replace(',', '.', $_POST['price']);
+            $expirationDate = $_POST['expirationDate'];
+            $fornecedor = $_POST['fornecedor'];
+            $categoria = $_POST['categoria'];
+            $cadastro = $_SESSION['id'];
+            $alterar = "Nome: " . $_SESSION['nome'] . " | " . date('d-m-Y H:i:s');
+            $quantidade = $_POST['qtd'];
+    
+            $sql = "INSERT INTO produtos (nome, lote, preco, datavalidade, idfornecedor, idcategoria, cadastro, alterar, qtd) VALUES ('$name', '$batch', '$price', '$expirationDate','$fornecedor', '$categoria','$cadastro','$alterar', $quantidade)";
+    
+            $result = $mysqli->query($sql);
+    
+            if (!$result) {
+                echo "Erro ao adicionar item: " . $mysqli->error;
+            } else {
+                echo "Item adicionado com sucesso!";
+                header("Location: " . $_SERVER['PHP_SELF']);
+                exit();
+            }
         }
     }
-}
-
-$queryFornecedores = "SELECT id, nome FROM fornecedores";
-$resultFornecedores = $mysqli->query($queryFornecedores);
-
-$queryCategorias = "SELECT id, nome FROM categorias";
-$resultCategorias = $mysqli->query($queryCategorias);
-
-$result = $mysqli->query($sql);
-
+    
+    $queryFornecedores = "SELECT id, nome FROM fornecedores";
+    $resultFornecedores = $mysqli->query($queryFornecedores);
+    
+    $queryCategorias = "SELECT id, nome FROM categorias";
+    $resultCategorias = $mysqli->query($queryCategorias);
+    
+    $result = $mysqli->query($sql);
 ?>
 
 <!DOCTYPE html>
@@ -59,23 +64,9 @@ $result = $mysqli->query($sql);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js">
-    <link rel="stylesheet" href="painel.css">
+    <link rel="stylesheet" href="paineldef.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
-
     <title>Painel</title>
-
-    <style>
-        .add-button, .show-button {
-            display: inline-block;
-            padding: 10px 15px;
-            background-color: #4CAF50;
-            color: white;
-            text-align: center;
-            text-decoration: none;
-            font-size: 16px;
-            cursor: pointer;
-            border-radius: 4px;
-        }
     </style>
 </head>
 
@@ -97,9 +88,10 @@ $result = $mysqli->query($sql);
         </ul>
 
         <button class="add" onclick="showAddItemForm()">Adicionar Item</button>
-        <a href="cad_fun.php" class="add-button">Cadastrar Funcionário</a>
-        <a href="show_fun.php" class="show-button">Exibir Funcionários</a>
-        <a href="cad_categ.php" class="add-button">Cadastrar Categoria</a>
+        <a href="show_adm.php" class="add-button">Administradores</a>
+        <a href="show_fun.php" class="show-button">Funcionários</a>
+        <a href="show_categ.php" class="add-button">Categorias</a>
+        <a href="show_forne.php" class="add-button">Fornecedores</a>
 
         <form action="" method="POST" id="addItemForm" style="display: none;">
             <h2>Adicionar Item</h2>
@@ -139,7 +131,7 @@ $result = $mysqli->query($sql);
             <button type="submit" name="submitItem">Adicionar</button>
         </form>
 
-        <p><a href="logout.php">Logout</a></p>
+        <p><a class="logout" href="logout.php">Logout</a></p>
     </div>
 
     <div class="m-5">
@@ -170,15 +162,23 @@ $result = $mysqli->query($sql);
         echo "<tr";
         if ($diferencaDias <= 0) {
             echo " style='background-color: #FA3138;'";
-            $desconto = 80/100;
-            $precodesconto = $preco - ($preco * $desconto);
+            $desconto = 0;
+            $precodesconto = 0;
         } elseif ($diferencaDias <= 60) {
             echo " style='background-color: yellow;'";
-            $desconto = 60/100;
+            $desconto = 40/100;
             $precodesconto = $preco - ($preco * $desconto);
         } elseif ($diferencaDias <= 120) {        
-            echo " style='background-color: green;'";
-            $desconto = 40/100;
+            echo " style='background-color: #00FF60;'";
+            $desconto = 30/100;
+            $precodesconto = $preco - ($preco * $desconto);
+        }elseif ($diferencaDias <= 180) {        
+            echo " style='background-color: #00EBFF;'";
+            $desconto = 20/100;
+            $precodesconto = $preco - ($preco * $desconto);
+        
+        } else{
+            $desconto = 0;
             $precodesconto = $preco - ($preco * $desconto);
         }
         echo ">";
@@ -188,7 +188,7 @@ $result = $mysqli->query($sql);
         echo "<td>" . $user_data['qtd'] . "</td>";
         echo "<td>" . $user_data['preco'] . "</td>";
         echo "<td>" . ($desconto*100)."%". "</td>";
-        echo "<td>" . (double)$precodesconto . "</td>";                    
+        echo "<td>" . $precodesconto . "</td>";                    
         echo "<td>" . $user_data['datavalidade'] . "</td>";
         echo "<td>" . $user_data['lote'] . "</td>";
         echo "<td>" . $user_data['alterar'] . "</td>";

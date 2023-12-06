@@ -24,7 +24,6 @@ if (!empty($_GET['codigo'])) {
             $cadastro = $_SESSION['id'];
             $alterar = "Nome: " . $_SESSION['nome'] . " | " . date('d-m-Y H:i:s');
             $quantidade = $user_data['qtd'];
-            $desconto = $user_data['desconto'];
         }
     } else {
         header('Location: painel_adm.php');
@@ -45,7 +44,7 @@ $resultCategorias = $mysqli->query($queryCategorias);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js">
-    <link rel="stylesheet" href="painel.css">
+    <link rel="stylesheet" href="paineldef.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
 
     <title>Painel</title>
@@ -64,9 +63,6 @@ $resultCategorias = $mysqli->query($queryCategorias);
 
             <label for="batch">Lote do Item:</label>
             <input type="text" id="batch" name="batch" value="<?php echo $batch ?>" required>
-
-            <label for="desconto">Desconto:</label>
-            <input type="text" id="desconto" name="desconto" value="<?php echo $desconto ?>" required>
 
             <label for="price">Preço do Item:</label>
             <input type="text" id="price" name="price" value="<?php echo $price ?>" required>
@@ -98,6 +94,14 @@ $resultCategorias = $mysqli->query($queryCategorias);
             <button type="submit" name="update">Salvar</button>
         </form>
     </div>
+
+    <script>
+        // JavaScript para exibir o formulário de adição de item
+        document.addEventListener('DOMContentLoaded', function () {
+            var addItemForm = document.getElementById('addItemForm');
+            addItemForm.style.display = 'block';
+        });
+    </script>
 </body>
 
 </html>

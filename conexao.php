@@ -1,7 +1,7 @@
 <?php
 
 $usuario = "root";
-$senha = "";
+$senha = "2712";
 $database = "chekdate";
 $host = "localhost";
 

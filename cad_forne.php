@@ -12,9 +12,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if (isset($_POST['cadastro'])) {
         $id = $_POST['id'];
         $nome = $_POST['nome'];
-        $cargo = $_POST['cargo'];
-        $login = $_POST['login'];
-        $senha = $_POST['senha'];
+        $endereco = $_POST['endereco'];
+        $contato = $_POST['contato'];
         $cadastro = $_SESSION['id'];
 
         // Certifique-se de que o valor em $_SESSION['id'] existe na tabela adm
@@ -22,8 +21,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $resultCheck = $mysqli->query($queryCheck);
 
         if ($resultCheck->num_rows > 0) {
-            $sql = "INSERT INTO funcionarios (id, nome, cargo, login, senha, cadastro) VALUES 
-            ('$id', '$nome', '$cargo', '$login', '$senha', '$cadastro')";
+            $sql = "INSERT INTO fornecedores (id, nome, endereco, contato, cadastro) VALUES 
+            ('$id', '$nome', '$endereco', '$contato','$cadastro')";
 
             $result = $mysqli->query($sql);
 
@@ -31,12 +30,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 echo "Erro ao adicionar: " . $mysqli->error;
             } else {
                 echo "Sucesso!";
-                header("Location: show_fun.php"); 
+                header("Location: show_forne.php"); 
                 exit();
             }
-    }   }
+        }
+    }
 }
-    
+
 ?>
 
 <!DOCTYPE html>
@@ -72,14 +72,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <label for="nome">Nome:</label>
             <input type="text" id="nome" name="nome" required>
 
-            <label for="cargo">Cargo:</label>
-            <input type="text" id="cargo" name="cargo" required>
+            <label for="endereco">Endereço:</label>
+            <input type="text" id="endereco" name="endereco" required>
 
-            <label for="login">Login:</label>
-            <input type="text" id="login" name="login" required>
-
-            <label for="senha">Senha:</label>
-            <input type="text" id="senha" name="senha" required>
+            <label for="contato">Contato:</label>
+            <input type="text" id="contato" name="contato" required>
 
             <button type="submit" name="cadastro">Cadastrar</button>
         </form>

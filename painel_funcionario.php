@@ -8,40 +8,12 @@ date_default_timezone_set('America/Sao_Paulo');
 if(!empty($_GET['search'])){
 
     $data = $_GET['search'];
-    $sql = "SELECT * FROM produtos WHERE codigo LIKE '%$data%' or nome LIKE '%$data%' or lote LIKE '%$data%' ORDER BY codigo DESC";
+    $sql = "SELECT * FROM produtos WHERE codigo LIKE '%$data%' or nome LIKE '%$data%' or lote LIKE '%$data%' ORDER BY datavalidade ASC";
 
 }else{
-    $sql = "SELECT * FROM produtos ORDER BY codigo DESC";
+    $sql = "SELECT * FROM produtos ORDER BY datavalidade ASC";
 }
 
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-
-    if (isset($_POST['submitItem'])) {
-        
-        $name = $_POST['name'];
-        $batch = $_POST['batch'];
-        $price = (double)str_replace(',', '.', $_POST['price']);
-        $expirationDate = $_POST['expirationDate'];
-        $fornecedor = $_POST['fornecedor'];
-        $categoria = $_POST['categoria'];
-        $cadastro = $_SESSION['id'];
-        $alterar = "Nome: " . $_SESSION['nome'] . " | " . date('d-m-Y H:i:s');
-        $quantidade = $_POST['qtd'];
-        $desconto = $_POST['desconto'];
-
-        $sql = "INSERT INTO produtos (nome, lote, preco, datavalidade, idfornecedor, idcategoria, cadastro, alterar, qtd, desconto) VALUES ('$name', '$batch', '$price', '$expirationDate','$fornecedor', '$categoria','$cadastro','$alterar', $quantidade, $desconto)";
-
-        $result = $mysqli->query($sql);
-
-        if (!$result) {
-            echo "Erro ao adicionar item: " . $mysqli->error;
-        } else {
-            echo "Item adicionado com sucesso!";
-            header("Location: " . $_SERVER['PHP_SELF']);
-            exit();
-        }
-    }
-}
 
 $queryFornecedores = "SELECT id, nome FROM fornecedores";
 $resultFornecedores = $mysqli->query($queryFornecedores);
@@ -50,6 +22,7 @@ $queryCategorias = "SELECT id, nome FROM categorias";
 $resultCategorias = $mysqli->query($queryCategorias);
 
 $result = $mysqli->query($sql);
+
 
 ?>
 
@@ -60,24 +33,9 @@ $result = $mysqli->query($sql);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js">
-    <link rel="stylesheet" href="painel.css">
+    <link rel="stylesheet" href="paineldef.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
-
     <title>Painel</title>
-
-    <style>
-        .add-button, .show-button {
-            display: inline-block;
-            padding: 10px 15px;
-            background-color: #4CAF50;
-            color: white;
-            text-align: center;
-            text-decoration: none;
-            font-size: 16px;
-            cursor: pointer;
-            border-radius: 4px;
-        }
-    </style>
 </head>
 
 <body>
@@ -97,55 +55,7 @@ $result = $mysqli->query($sql);
 
         </ul>
 
-        <button onclick="sortByExpirationDate()">Ordenar por Proximidade</button>
-
-        <button class="add" onclick="showAddItemForm()">Adicionar Item</button>
-        <a href="cad_fun.php" class="add-button">Cadastrar Funcionário</a>
-        <a href="show_fun.php" class="show-button">Exibir Funcionários</a>
-        <a href="cad_categ.php" class="add-button">Cadastrar Categoria</a>
-
-        <form action="" method="POST" id="addItemForm" style="display: none;">
-            <h2>Adicionar Item</h2>
-            <label for="name">Nome do Item:</label>
-            <input type="text" id="name" name="name" required>
-
-            <label for="qtd">Quantidade:</label>
-            <input type="text" id="qtd" name="qtd" required>
-
-            <label for="batch">Lote do Item:</label>
-            <input type="text" id="batch" name="batch" required>
-
-            <label for="desconto">Desconto:</label>
-            <input type="text" id="desconto" name="desconto" required>
-
-            <label for="price">Preço do Item:</label>
-            <input type="text" id="price" name="price" required>
-
-            <label for="expirationDate">Data de Validade:</label>
-            <input type="date" id="expirationDate" name="expirationDate" required>
-
-            <label for="fornecedor">Fornecedor:</label>
-            <select id="fornecedor" name="fornecedor" required>
-                <?php
-                while ($rowFornecedor = $resultFornecedores->fetch_assoc()) {
-                    echo "<option value='" . $rowFornecedor["id"] . "'>" . $rowFornecedor["nome"] . "</option>";
-                }
-                ?>
-            </select>
-
-            <label for="categoria">Categoria:</label>
-            <select id="categoria" name="categoria" required>
-                <?php
-                while ($rowCategoria = $resultCategorias->fetch_assoc()) {
-                    echo "<option value='" . $rowCategoria["id"] . "'>" . $rowCategoria["nome"] . "</option>";
-                }
-                ?>
-            </select>
-
-            <button type="submit" name="submitItem">Adicionar</button>
-        </form>
-
-        <p><a href="logout.php">Logout</a></p>
+        <p><a class="logout" href="logout.php">Logout</a></p>
     </div>
 
     <div class="m-5">
@@ -155,8 +65,8 @@ $result = $mysqli->query($sql);
                 <th scope="col">Código</th>
                 <th scope="col">Descrição</th>
                 <th scope="col">Quantidade</th>
-                <th scope="col">Desconto</th>
                 <th scope="col">Preço</th>
+                <th scope="col">Desconto</th>
                 <th scope="col">Preço com Desconto</th>
                 <th scope="col">Data de Validade</th>
                 <th scope="col">Lote</th>
@@ -166,6 +76,7 @@ $result = $mysqli->query($sql);
             <tbody>
             <?php
     while ($user_data = mysqli_fetch_assoc($result)) {
+        $preco = $user_data['preco'];
         $hoje = new DateTime();
         $datavalidade = new DateTime($user_data['datavalidade']);
         $diferenca = $datavalidade->getTimestamp() - $hoje->getTimestamp();
@@ -175,19 +86,32 @@ $result = $mysqli->query($sql);
         echo "<tr";
         if ($diferencaDias <= 0) {
             echo " style='background-color: #FA3138;'";
+            $desconto = 0;
+            $precodesconto = 0;
         } elseif ($diferencaDias <= 60) {
             echo " style='background-color: yellow;'";
+            $desconto = 40/100;
+            $precodesconto = $preco - ($preco * $desconto);
+        } elseif ($diferencaDias <= 120) {        
+            echo " style='background-color: #00FF60;'";
+            $desconto = 30/100;
+            $precodesconto = $preco - ($preco * $desconto);
+        }elseif ($diferencaDias <= 180) {        
+            echo " style='background-color: #00EBFF;'";
+            $desconto = 20/100;
+            $precodesconto = $preco - ($preco * $desconto);
+        
+        } else{
+            $desconto = 0;
+            $precodesconto = $preco - ($preco * $desconto);
         }
         echo ">";
-
+        
         echo "<td>" . $user_data['codigo'] . "</td>";
         echo "<td>" . $user_data['nome'] . "</td>";
         echo "<td>" . $user_data['qtd'] . "</td>";
-        echo "<td>" . $user_data['desconto'] . "</td>";
         echo "<td>" . $user_data['preco'] . "</td>";
-        $preco = $user_data['preco'];
-        $desconto = $user_data['desconto'];
-        $precodesconto = $preco - ($preco * $desconto / 100);
+        echo "<td>" . ($desconto*100)."%". "</td>";
         echo "<td>" . $precodesconto . "</td>";                    
         echo "<td>" . $user_data['datavalidade'] . "</td>";
         echo "<td>" . $user_data['lote'] . "</td>";
@@ -199,20 +123,13 @@ $result = $mysqli->query($sql);
                     </svg>
                 </a>
             </td>";
-        echo "<td>
-                <a class='btn edit' href='delete.php?codigo={$user_data['codigo']}'>
-                    <svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='currentColor' class='bi bi-trash-fill' viewBox='0 0 16 16'>
-                        <path d='M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5M8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5m3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0'/>
-                    </svg>
-                </a>
-            </td>";
-
         echo "</tr>";
     }
     ?>
             </tbody>
         </table>
     </div>
+
 </body>
 
 <script>
@@ -226,7 +143,7 @@ $result = $mysqli->query($sql);
     });
     
     function searchData(){
-        window.location = 'painel_adm.php?search='+search.value;
+        window.location = 'painel_funcionario.php?search='+search.value;
     }    
 </script>
 

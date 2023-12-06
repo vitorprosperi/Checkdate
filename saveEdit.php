@@ -15,17 +15,20 @@ if(isset($_POST['update'])){
         $fornecedor = $_POST['fornecedor'];
         $categoria = $_POST['categoria'];
         $quantidade = $_POST['qtd'];
-        $desconto = $_POST['desconto'];
 
-        $cadastro = $_SESSION['id'];
         $alterar = "Nome: " . $_SESSION['nome'] . " | " . date('d-m-Y H:i:s');
 
-        $sqlUpdate = "UPDATE produtos SET nome='$name', lote='$batch', preco='$price', datavalidade='$expirationDate', idfornecedor='$fornecedor', idcategoria='$categoria', cadastro='$cadastro', alterar='$alterar', qtd='$quantidade', desconto='$desconto' WHERE codigo='$codigo'";
+        $sqlUpdate = "UPDATE produtos SET nome='$name', lote='$batch', preco='$price', datavalidade='$expirationDate', idfornecedor='$fornecedor', idcategoria='$categoria', alterar='$alterar', qtd='$quantidade' WHERE codigo='$codigo'";
 
-        $result = $mysqli->query($sqlUpdate);        
+        $result = $mysqli->query($sqlUpdate);
+        
+            
 }
 
-
-header('Location: painel_adm.php');
+if ($_SESSION['privilegio'] == 1){
+        header('Location: painel_adm.php');      
+}else{
+        header('Location: painel_funcionario.php');
+}
 
 ?>

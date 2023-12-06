@@ -15,28 +15,28 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $cargo = $_POST['cargo'];
         $login = $_POST['login'];
         $senha = $_POST['senha'];
-        $cadastro = $_SESSION['id'];
 
-        // Certifique-se de que o valor em $_SESSION['id'] existe na tabela adm
-        $queryCheck = "SELECT id FROM adm WHERE id = '$cadastro'";
-        $resultCheck = $mysqli->query($queryCheck);
+        // Certifique-se de escapar os dados antes de usá-los na consulta
+        $id = $mysqli->real_escape_string($id);
+        $nome = $mysqli->real_escape_string($nome);
+        $cargo = $mysqli->real_escape_string($cargo);
+        $login = $mysqli->real_escape_string($login);
+        $senha = $mysqli->real_escape_string($senha);
 
-        if ($resultCheck->num_rows > 0) {
-            $sql = "INSERT INTO funcionarios (id, nome, cargo, login, senha, cadastro) VALUES 
-            ('$id', '$nome', '$cargo', '$login', '$senha', '$cadastro')";
+        $sql = "INSERT INTO adm (id, nome, cargo, login, senha) VALUES 
+        ('$id', '$nome', '$cargo', '$login', '$senha')";
 
-            $result = $mysqli->query($sql);
+        $result = $mysqli->query($sql);
 
-            if (!$result) {
-                echo "Erro ao adicionar: " . $mysqli->error;
-            } else {
-                echo "Sucesso!";
-                header("Location: show_fun.php"); 
-                exit();
-            }
-    }   }
+        if (!$result) {
+            echo "Erro ao adicionar: " . $mysqli->error;
+        } else {
+            echo "Sucesso!";
+            header("Location: show_adm.php"); 
+            exit();
+        }
+    }
 }
-    
 ?>
 
 <!DOCTYPE html>
